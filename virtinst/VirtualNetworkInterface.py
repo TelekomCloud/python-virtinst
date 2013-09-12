@@ -285,7 +285,7 @@ class VirtualNetworkInterface(VirtualDevice.VirtualDevice):
         return self._filterref
     def set_filterref(self, val):
         self._filterref = val
-    model = _xml_property(get_filterref, set_filterref,
+    filterref = _xml_property(get_filterref, set_filterref,
                           xpath="./filterref/@filter")
 
     def get_target_dev(self):
