@@ -861,6 +861,7 @@ def digest_networks(guest, options, numnics=1):
     macs     = listify(options.mac)
     networks = listify(options.network)
     bridges  = listify(options.bridge)
+    filter_refs = _parse_filterrefs(options.filterref)
 
     if bridges and networks:
         fail(_("Cannot mix both --bridge and --network arguments"))
@@ -882,15 +883,16 @@ def digest_networks(guest, options, numnics=1):
         if networks[idx] is None:
             networks[idx] = _default_network_opts(guest)
 
-    return networks, macs
+    return networks, macs, filter_refs
 
-def get_networks(guest, networks, macs):
+def get_networks(guest, networks, macs, filter_refs):
     for idx in range(len(networks)):
         mac = macs[idx]
         netstr = networks[idx]
 
         try:
-            dev = parse_network(guest, netstr, mac=mac)
+            print "filter ", filter_refs
+            dev = parse_network(guest, netstr, mac=mac, filter_refs=filter_refs)
             guest.add_device(dev)
         except Exception, e:
             fail(_("Error in network device parameters: %s") % str(e))
@@ -1103,6 +1105,9 @@ def add_net_option(devg):
              "--network network=my_libvirt_virtual_net\n"
              "--network network=mynet,model=virtio,mac=00:11...\n"
              "--network network=mynet,model=virtio,filterref=clean-traffic"))
+    devg.add_option("--filterref", dest="filterref", action="append",
+      help=_("Adds filterref to a given filtername. Ex:\n"
+             "--filterref  eth0=ip=10.0.0.1,ip=10.0.0.2\n"))
  
 
 def add_device_options(devg):
@@ -1651,7 +1656,15 @@ def parse_disk(guest, optstr, dev=None):
 # --network parsing #
 #####################
 
-def parse_network(guest, optstring, dev=None, mac=None):
+ 
+def _parse_filterrefs(filterrefs):
+    filters = {}
+    for i in filterrefs:
+        key, value = i.split("=", 1)
+        filters[key] = parse_optstr_tuples(value)
+    return filters
+
+def parse_network(guest, optstring, dev=None, mac=None, filter_refs=None):
     # Handle old format of bridge:foo instead of bridge=foo
     for prefix in ["network", "bridge"]:
         if optstring.startswith(prefix + ":"):
@@ -1679,6 +1692,13 @@ def parse_network(guest, optstring, dev=None, mac=None):
         if opts["mac"] == "RANDOM":
             opts["mac"] = None
 
+    ref_filter = None
+
+    if "filterref" in opts and dev.bridge in filter_refs:
+        ref_filter = filter_refs[dev.bridge]
+        print "xxxx", ref_filter
+        dev.filterrefs = ref_filter
+
     set_param = _build_set_param(dev, opts)
 
     set_param("type", "type", net_type)
@@ -1687,6 +1707,7 @@ def parse_network(guest, optstring, dev=None, mac=None):
     set_param("model", "model")
     set_param("filterref", "filterref")
     set_param("macaddr", "mac")
+
 
     if opts:
         raise ValueError(_("Unknown options %s") % opts.keys())

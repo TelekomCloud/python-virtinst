@@ -135,6 +135,7 @@ class VirtualNetworkInterface(VirtualDevice.VirtualDevice):
         self._type = None
         self._model = None
         self._filterref = None
+        self._filterrefs = []
         self._target_dev = None
         self._source_dev = None
         self._source_mode = "vepa"
@@ -288,6 +289,13 @@ class VirtualNetworkInterface(VirtualDevice.VirtualDevice):
     filterref = _xml_property(get_filterref, set_filterref,
                           xpath="./filterref/@filter")
 
+    def get_filterrefs(self):
+        return self._filterrefs
+    def set_filterrefs(self, val):
+        self._filterrefs = val
+    filterrefs = _xml_property(get_filterrefs, set_filterrefs,
+                          xpath="./filterref/@filter")
+
     def get_target_dev(self):
         return self._target_dev
     def set_target_dev(self, val):
@@ -387,7 +395,10 @@ class VirtualNetworkInterface(VirtualDevice.VirtualDevice):
             target_xml  = "      <target dev='%s'/>\n" % self.target_dev
 
         if self.filterref:
-            filterref_xml = "      <filterref filter='%s'/>\n" % self.filterref 
+            filterref_xml = "      <filterref filter='%s'>\n" % self.filterref
+            for n in self.filterrefs:
+               filterref_xml += "        <parameter name='%s' value='%s' />\n" % (n[0], n[1])
+            filterref_xml += "     </filterref>\n"
 
         xml  = "    <interface type='%s'>\n" % self.type
         xml += src_xml
