@@ -125,7 +125,7 @@ class VirtualNetworkInterface(VirtualDevice.VirtualDevice):
 
     def __init__(self, macaddr=None, type=TYPE_BRIDGE, bridge=None,
                  network=None, model=None, conn=None,
-                 parsexml=None, parsexmlnode=None, caps=None):
+                 parsexml=None, parsexmlnode=None, caps=None, filterref=None):
         VirtualDevice.VirtualDevice.__init__(self, conn, parsexml,
                                              parsexmlnode, caps)
 
@@ -134,6 +134,7 @@ class VirtualNetworkInterface(VirtualDevice.VirtualDevice):
         self._macaddr = None
         self._type = None
         self._model = None
+        self._filterref = None
         self._target_dev = None
         self._source_dev = None
         self._source_mode = "vepa"
@@ -152,6 +153,7 @@ class VirtualNetworkInterface(VirtualDevice.VirtualDevice):
         self.source_dev = bridge
         self.network = network
         self.model = model
+        self.filterref = filterref
 
         if self.type == self.TYPE_VIRTUAL:
             if network is None:
@@ -279,6 +281,13 @@ class VirtualNetworkInterface(VirtualDevice.VirtualDevice):
     model = _xml_property(get_model, set_model,
                           xpath="./model/@type")
 
+    def get_filterref(self):
+        return self._filterref
+    def set_filterref(self, val):
+        self._filterref = val
+    model = _xml_property(get_filterref, set_filterref,
+                          xpath="./filterref/@filter")
+
     def get_target_dev(self):
         return self._target_dev
     def set_target_dev(self, val):
@@ -377,12 +386,16 @@ class VirtualNetworkInterface(VirtualDevice.VirtualDevice):
         if self.target_dev:
             target_xml  = "      <target dev='%s'/>\n" % self.target_dev
 
+        if self.filterref:
+            filterref_xml = "      <filterref filter='%s'/>\n" % self.filterref 
+
         xml  = "    <interface type='%s'>\n" % self.type
         xml += src_xml
         xml += "      <mac address='%s'/>\n" % self.macaddr
         xml += target_xml
         xml += model_xml
         xml += addr_xml
+        xml += filterref_xml
         xml += "    </interface>"
         return xml
 
