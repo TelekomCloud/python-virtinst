@@ -207,6 +207,7 @@ class Guest(XMLBuilderDomain.XMLBuilderDomain):
         self._os_type = None
         self._os_variant = None
         self._os_autodetect = False
+        self.sysinfo_smbios = {}
 
         # DEPRECATED: Public device lists unaltered by install process
         self.disks = []
@@ -654,6 +655,7 @@ class Guest(XMLBuilderDomain.XMLBuilderDomain):
                 newlist.append(i)
         return newlist
 
+
     def add_device(self, dev):
         """
         Add the passed device to the guest's device list.
@@ -938,6 +940,18 @@ class Guest(XMLBuilderDomain.XMLBuilderDomain):
 
         return xml
 
+    def _get_sysinfo_blob(self):
+        xml = ""
+        add = lambda x: _util.xml_append(xml, x)
+        if self.sysinfo_smbios:
+            xml = add("<sysinfo type='smbios'>")
+            xml = add("    <system>")
+            for k, v in self.sysinfo_smbios.iteritems():
+                xml = add("      <entry name='%s'>%s</entry>" % (k, v))
+            xml = add("    </system>")
+            xml = add("  </sysinfo>")
+        return xml
+
     def _get_osblob(self, install):
         """
         Return os, features, and clock xml (Implemented in subclass)
@@ -1076,6 +1090,7 @@ class Guest(XMLBuilderDomain.XMLBuilderDomain):
         # <cputune>
         xml = add(self.numatune.get_xml_config())
         # <sysinfo>
+        xml = add("  %s" % self._get_sysinfo_blob())
         # XXX: <bootloader> goes here, not in installer XML
         xml = add("  %s" % osblob)
         xml = add(self._get_features_xml(tmpfeat))
@@ -1091,6 +1106,10 @@ class Guest(XMLBuilderDomain.XMLBuilderDomain):
         xml = add("</domain>\n")
 
         return xml
+
+    def add_smbios(self, smbios):
+        print smbios, self.installer, self
+        self.sysinfo_smbios = smbios
 
     def post_install_check(self):
         """

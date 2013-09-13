@@ -321,6 +321,7 @@ class Installer(XMLBuilderDomain.XMLBuilderDomain):
         loader = self.loader
         os_type = self.os_type
         init = self.init or self._get_default_init(guest)
+        smbios = guest.sysinfo_smbios
 
         hvxen = (hvtype == "xen")
 
@@ -358,6 +359,10 @@ class Installer(XMLBuilderDomain.XMLBuilderDomain):
 
         if not self.is_container():
             osblob = _util.xml_append(osblob, bootconfig.get_xml_config())
+
+
+        if smbios:
+            osblob = _util.xml_append(osblob, "    <smbios mode='sysinfo'/>")
         osblob = _util.xml_append(osblob, "  </os>")
 
         return osblob
