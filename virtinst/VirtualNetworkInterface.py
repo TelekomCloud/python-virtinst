@@ -406,7 +406,8 @@ class VirtualNetworkInterface(VirtualDevice.VirtualDevice):
         xml += target_xml
         xml += model_xml
         xml += addr_xml
-        xml += filterref_xml
+        if self.filterref:
+            xml += filterref_xml
         xml += "    </interface>"
         return xml
 

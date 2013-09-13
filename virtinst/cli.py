@@ -1659,6 +1659,10 @@ def parse_disk(guest, optstr, dev=None):
  
 def _parse_filterrefs(filterrefs):
     filters = {}
+
+    if not filterrefs:
+       return filters
+
     for i in filterrefs:
         key, value = i.split("=", 1)
         filters[key] = parse_optstr_tuples(value)
