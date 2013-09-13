@@ -167,6 +167,8 @@ def get_networks(guest, options):
     networks, macs,filter_refs = cli.digest_networks(guest, options)
     cli.get_networks(guest, networks, macs, filter_refs)
 
+def get_smbios(guest, options):
+    cli.get_smbios(guest, options)
 
 ########################
 # Virt type validation #
@@ -492,6 +494,7 @@ def build_guest_instance(conn, options):
     cli.get_controller(guest, options.controller)
     cli.get_redirdev(guest, options.redirdev)
     cli.get_memballoon(guest, options.memballoon)
+    get_smbios(guest, options)
     if not options.nonetworks:
         get_networks(guest, options)
     get_graphics(guest, options)
@@ -824,6 +827,8 @@ def parse_args():
                     help=_("Set domain security driver configuration."))
     geng.add_option("", "--numatune", dest="numatune",
                     help=_("Tune NUMA policy for the domain process."))
+    geng.add_option("", "--smbios", dest="smbios",
+                    help=_(""))
     parser.add_option_group(geng)
 
     insg = optparse.OptionGroup(parser, _("Installation Method Options"))
@@ -882,7 +887,6 @@ def parse_args():
     parser.add_option_group(stog)
 
     netg = cli.network_option_group(parser)
-
     netg.add_option("", "--nonetworks", action="store_true",
                     help=_("Don't create network interfaces for the guest."))
     parser.add_option_group(netg)

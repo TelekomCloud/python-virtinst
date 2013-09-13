@@ -885,6 +885,10 @@ def digest_networks(guest, options, numnics=1):
 
     return networks, macs, filter_refs
 
+def get_smbios(guest, options):
+    smbios = parse_optstr(options.smbios)
+    guest.add_smbios(smbios)
+
 def get_networks(guest, networks, macs, filter_refs):
     for idx in range(len(networks)):
         mac = macs[idx]
@@ -1108,7 +1112,6 @@ def add_net_option(devg):
     devg.add_option("--filterref", dest="filterref", action="append",
       help=_("Adds filterref to a given filtername. Ex:\n"
              "--filterref  eth0=ip=10.0.0.1,ip=10.0.0.2\n"))
- 
 
 def add_device_options(devg):
     devg.add_option("", "--controller", dest="controller", action="append",
@@ -1696,7 +1699,6 @@ def parse_network(guest, optstring, dev=None, mac=None, filter_refs=None):
 
     if "filterref" in opts and dev.bridge in filter_refs:
         ref_filter = filter_refs[dev.bridge]
-        print "xxxx", ref_filter
         dev.filterrefs = ref_filter
 
     set_param = _build_set_param(dev, opts)
